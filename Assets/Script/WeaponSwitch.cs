@@ -11,6 +11,7 @@ public class WeaponSwitch : MonoBehaviour
 
     void Update()
     {
+        // กด F → สลับอาวุธ
         if (Input.GetKeyDown(KeyCode.F))
         {
             currentWeapon++;
@@ -22,6 +23,25 @@ public class WeaponSwitch : MonoBehaviour
 
             SelectWeapon();
         }
+
+        // (เพิ่ม) เลือกอาวุธด้วยปุ่ม 1 / 2 / 3
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            currentWeapon = 0;
+            SelectWeapon();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2) && transform.childCount >= 2)
+        {
+            currentWeapon = 1;
+            SelectWeapon();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3) && transform.childCount >= 3)
+        {
+            currentWeapon = 2;
+            SelectWeapon();
+        }
     }
 
     void SelectWeapon()
@@ -30,11 +50,7 @@ public class WeaponSwitch : MonoBehaviour
 
         foreach (Transform weapon in transform)
         {
-            if (i == currentWeapon)
-                weapon.gameObject.SetActive(true);
-            else
-                weapon.gameObject.SetActive(false);
-
+            weapon.gameObject.SetActive(i == currentWeapon);
             i++;
         }
     }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class GunSystem : MonoBehaviour
 {
@@ -10,66 +11,200 @@ public class GunSystem : MonoBehaviour
 
     public float reloadTime = 1.5f;
     private bool isReloading = false;
+    private float reloadTimer = 0f;
+
+    // ✅ โหมดยิง
+    public bool isAutomatic = false;
+    public float fireRate = 10f; // ยิงต่อวินาที
+    private float nextTimeToFire = 0f;
 
     public HitMarkerUI hitMarker;
-
     public Camera fpsCam;
+
+    public TextMeshProUGUI ammoText;
+    public GameObject reloadText;
+
+    [Header("Upgrade Levels")]
+    public int damageLevel = 1;
+    public int fireRateLevel = 1;
+    public int maxLevel = 5;
 
     void Start()
     {
         currentAmmo = maxAmmo;
+        reloadText.SetActive(false);
+        UpdateUI();
     }
 
     void Update()
+{
+    HandleReload();
+
+    // ❌ เพิ่มบล็อกเมื่อ Shop Panel เปิด
+    if (ShopManager.instance != null && ShopManager.instance.IsShopOpen())
+        return;
+
+    if (!gameObject.activeInHierarchy) return;
+    if (isReloading) return;
+
+    if (currentAmmo <= 0)
     {
-        if (isReloading)
-            return;
+        StartReload();
+        return;
+    }
 
-        if (currentAmmo <= 0)
+    if (isAutomatic)
+    {
+        if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
         {
-            StartCoroutine(Reload());
-            return;
+            nextTimeToFire = Time.time + 1f / fireRate;
+            Shoot();
         }
-
+    }
+    else
+    {
         if (Input.GetButtonDown("Fire1"))
         {
             Shoot();
         }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            StartCoroutine(Reload());
-        }
     }
+
+    if (Input.GetKeyDown(KeyCode.R))
+    {
+        StartReload();
+    }
+}
 
     void Shoot()
     {
         currentAmmo--;
+        UpdateUI();
 
         RaycastHit hit;
 
         if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
-{
-    EnemyHealth enemy = hit.transform.GetComponent<EnemyHealth>();
+        {
+            EnemyHealth enemy = hit.transform.GetComponent<EnemyHealth>();
 
-    if (enemy != null)
-    {
-        enemy.TakeDamage(damage);
-        hitMarker.ShowHitMarker();
-    }
-}
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damage);
+                hitMarker.ShowHitMarker();
+            }
+        }
     }
 
-    System.Collections.IEnumerator Reload()
+    void StartReload()
     {
+        if (isReloading) return;
+
         isReloading = true;
-
-        Debug.Log("Reloading...");
-
-        yield return new WaitForSeconds(reloadTime);
-
-        currentAmmo = maxAmmo;
-
-        isReloading = false;
+        reloadTimer = reloadTime;
+        reloadText.SetActive(true);
     }
+
+    void HandleReload()
+    {
+        if (!isReloading) return;
+
+        reloadTimer -= Time.deltaTime;
+
+        if (reloadTimer <= 0f)
+        {
+            currentAmmo = maxAmmo;
+            isReloading = false;
+
+            reloadText.SetActive(false);
+            UpdateUI();
+        }
+    }
+
+    void UpdateUI()
+    {
+        ammoText.text = currentAmmo + " / " + maxAmmo;
+
+        if (currentAmmo <= 5)
+            ammoText.color = Color.red;
+        else
+            ammoText.color = Color.white;
+    }
+
+    public void IncreaseMaxAmmo(int amount)
+{
+    maxAmmo += amount;
+    currentAmmo = maxAmmo; // เติมกระสุนเต็มด้วย
+    UpdateUI();
+}
+
+
+
+public void IncreaseDamage(int amount)
+{
+    damage += amount;
+    Debug.Log("Damage Increased: " + damage);
+}
+
+public void IncreaseFireRate(float amount)
+{
+    fireRate += amount;
+
+    // กันยิงเร็วเกินไป
+    if (fireRate > 50f)
+        fireRate = 50f;
+
+    Debug.Log("Fire Rate Increased: " + fireRate);
+}
+
+public void UpgradeDamage(int amount)
+{
+    if (damageLevel >= maxLevel)
+    {
+        Debug.Log("Damage MAX LEVEL");
+        return;
+    }
+
+    damageLevel++;
+    damage += amount;
+
+    Debug.Log("Damage Lv." + damageLevel + " | Damage: " + damage);
+}
+
+public void UpgradeFireRate(float amount)
+{
+    if (fireRateLevel >= maxLevel)
+    {
+        Debug.Log("FireRate MAX LEVEL");
+        return;
+    }
+
+    fireRateLevel++;
+    fireRate += amount;
+
+    if (fireRate > 50f)
+        fireRate = 50f;
+
+    Debug.Log("FireRate Lv." + fireRateLevel + " | Rate: " + fireRate);
+}
+
+// GunSystem.cs
+public void UpgradeDamagePercent(float percent)
+{
+    if (damageLevel >= maxLevel) return;
+
+    damageLevel++;
+    damage = Mathf.RoundToInt(damage * (1 + percent / 100f));
+
+    Debug.Log("Damage Lv." + damageLevel + " | Damage: " + damage);
+}
+
+public void UpgradeFireRatePercent(float percent)
+{
+    if (fireRateLevel >= maxLevel) return;
+
+    fireRateLevel++;
+    fireRate *= (1 + percent / 100f);
+    if (fireRate > 50f) fireRate = 50f;
+
+    Debug.Log("FireRate Lv." + fireRateLevel + " | Rate: " + fireRate);
+}
 }
