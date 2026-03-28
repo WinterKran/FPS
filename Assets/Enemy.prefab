@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2163404787282426010}
   - component: {fileID: 8523839883359791059}
+  - component: {fileID: 1807842398378560919}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -26,7 +27,7 @@ RectTransform:
   m_GameObject: {fileID: 3616937313591109741}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.42825904, y: 0.2019584, z: 0.42825904}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 551785371333318408}
@@ -83,17 +84,33 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -1123886571, guid: d298cfd7cf8f62c4fb7e1fa066b74ea9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 3.5, y: 5.56}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1807842398378560919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3616937313591109741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7eb15b95e909e784183397e29edf7ee7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Simple3FrameAnimation
+  frame1: {fileID: -1123886571, guid: d298cfd7cf8f62c4fb7e1fa066b74ea9, type: 3}
+  frame2: {fileID: 1111406273, guid: d298cfd7cf8f62c4fb7e1fa066b74ea9, type: 3}
+  frame3: {fileID: -1361856883, guid: d298cfd7cf8f62c4fb7e1fa066b74ea9, type: 3}
+  frameRate: 5
 --- !u!1 &4433883997848461916
 GameObject:
   m_ObjectHideFlags: 0
@@ -152,7 +169,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4433883997848461916}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -208,7 +225,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -226,8 +243,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ada8ca72b8fcd8b4196cf2e009539df7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  maxHealth: 100
-  rewardMoney: 100
+  maxHealth: 50
+  rewardMoney: 200
 --- !u!114 &8333389015193796845
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -242,8 +259,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   lookRadius: 1000
   attackRange: 10
-  damage: 100
+  damage: 5
   fireRate: 1
+  moveSpeed: 12
   player: {fileID: 4515892796823188193, guid: 72d3da734b1620e44b11b67ba2248edb, type: 3}
   firePoint: {fileID: 551785371333318408}
   playerLayer:

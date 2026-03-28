@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class WaveManager : MonoBehaviour
 {
@@ -115,25 +116,7 @@ public class WaveManager : MonoBehaviour
 
     void RestartGame()
 {
-    // รีเซ็ตค่า Wave
-    currentWave = 1;
-    gameOver = false;
-    waveFinished = false;
-
-    // ซ่อน UI ทั้งหมด
-    waveUI.SetActive(false);
-    gameOverUI.SetActive(false);
-    victoryUI.SetActive(false);
-
-    // เปิดปุ่ม Continue กลับมา
-    continueButton.gameObject.SetActive(true);
-
-    // รีเซ็ต Player
-    ResetPlayerPosition();
-
-    // เริ่ม Wave ใหม่
-    EnemySpawner.instance.StartWave(currentWave, enemiesPerWave);
-
-    Debug.Log("Restart Game!");
+    Time.timeScale = 1f; // กันเกมค้าง
+    SceneManager.LoadScene("Open"); // 👈 ใส่ชื่อ Scene เมนู
 }
 }

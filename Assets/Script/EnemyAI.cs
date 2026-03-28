@@ -3,10 +3,12 @@ using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
+    [Header("AI Settings")]
     public float lookRadius = 20f;
     public float attackRange = 10f;
     public int damage = 10;
     public float fireRate = 1f;
+    public float moveSpeed = 3.5f; // <-- เพิ่มตัวนี้เพื่อปรับความเร็ว
 
     private float nextTimeToFire = 0f;
 
@@ -15,14 +17,18 @@ public class EnemyAI : MonoBehaviour
 
     public LayerMask playerLayer; // ให้ยิงโดนเฉพาะ Player
 
-    NavMeshAgent agent;
+    private NavMeshAgent agent;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.speed = moveSpeed; // ตั้งค่าความเร็วตอนเริ่ม
+        }
 
+        // หา Player หรือ Wall
         GameObject p = GameObject.FindGameObjectWithTag("Wall");
-
         if (p != null)
         {
             player = p.transform;
@@ -31,7 +37,10 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
-        if (!agent.isOnNavMesh || player == null || firePoint == null) return;
+        if (agent == null || !agent.isOnNavMesh || player == null || firePoint == null) return;
+
+        // อัปเดตความเร็วตลอดเวลา เผื่อแก้ใน Inspector
+        agent.speed = moveSpeed;
 
         float distance = Vector3.Distance(player.position, transform.position);
 
@@ -80,10 +89,9 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
-        Debug.DrawRay(firePoint.position, firePoint.forward * 100f, Color.red, 0.5f); // ดู Raycast
+        Debug.DrawRay(firePoint.position, firePoint.forward * 100f, Color.red, 0.5f);
     }
 
-    // วาด Gizmos สำหรับ Look Radius และ Attack Range
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

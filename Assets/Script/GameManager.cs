@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         UpdateMoneyUI();
     }
 
@@ -32,4 +34,17 @@ public class GameManager : MonoBehaviour
             moneyText.text = "$" + money.ToString();
         }
     }
+
+    public bool SpendMoney(int amount)
+{
+    if (money >= amount)
+    {
+        money -= amount;
+        UpdateMoneyUI();
+        return true;
+    }
+
+    Debug.Log("Not enough money!");
+    return false;
+}
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class GunSystem : MonoBehaviour
 {
@@ -10,10 +11,8 @@ public class GunSystem : MonoBehaviour
     private int currentAmmo;
 
     public float reloadTime = 1.5f;
-    private bool isReloading = false;
     private float reloadTimer = 0f;
 
-    // ✅ โหมดยิง
     public bool isAutomatic = false;
     public float fireRate = 10f; // ยิงต่อวินาที
     private float nextTimeToFire = 0f;
@@ -27,184 +26,189 @@ public class GunSystem : MonoBehaviour
     [Header("Upgrade Levels")]
     public int damageLevel = 1;
     public int fireRateLevel = 1;
-    public int maxLevel = 5;
+    public int ammoLevel = 1;
+    public int maxLevel = 10;
+
+    [Header("Upgrade Cost")]
+    public int damageCost = 100;
+    public int fireRateCost = 150;
+    public int ammoCost = 80;
+
+    public Button damageButton;
+    public Button fireRateButton;
+    public Button ammoButton;
+
+    [Header("Sound")]
+    public AudioSource audioSource;
+    public AudioClip shootSound;
+
+    public GunUI gunUI;
 
     void Start()
     {
         currentAmmo = maxAmmo;
-        reloadText.SetActive(false);
+        if (reloadText != null)
+            reloadText.SetActive(false);
+
         UpdateUI();
+        RefreshUpgradeButtons();
+        if (gunUI != null)
+            gunUI.RefreshUI();
     }
 
     void Update()
-{
-    HandleReload();
-
-    // ❌ เพิ่มบล็อกเมื่อ Shop Panel เปิด
-    if (ShopManager.instance != null && ShopManager.instance.IsShopOpen())
-        return;
-
-    if (!gameObject.activeInHierarchy) return;
-    if (isReloading) return;
-
-    if (currentAmmo <= 0)
     {
-        StartReload();
-        return;
-    }
+        HandleReload();
 
-    if (isAutomatic)
-    {
-        if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
+        // ❌ กันยิงตอนเปิดร้าน
+        if (ShopManager.instance != null && ShopManager.instance.IsShopOpen())
+            return;
+
+        if (!gameObject.activeInHierarchy) return;
+
+        if (currentAmmo <= 0)
         {
-            nextTimeToFire = Time.time + 1f / fireRate;
-            Shoot();
+            StartReload();
+            return;
         }
-    }
-    else
-    {
-        if (Input.GetButtonDown("Fire1"))
+
+        if (isAutomatic)
         {
-            Shoot();
-        }
-    }
-
-    if (Input.GetKeyDown(KeyCode.R))
-    {
-        StartReload();
-    }
-}
-
-    void Shoot()
-    {
-        currentAmmo--;
-        UpdateUI();
-
-        RaycastHit hit;
-
-        if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
-        {
-            EnemyHealth enemy = hit.transform.GetComponent<EnemyHealth>();
-
-            if (enemy != null)
+            if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
             {
-                enemy.TakeDamage(damage);
-                hitMarker.ShowHitMarker();
+                nextTimeToFire = Time.time + 1f / fireRate;
+                Shoot();
             }
         }
+        else
+        {
+            if (Input.GetButtonDown("Fire1"))
+                Shoot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+            StartReload();
+
+        // อัปเดตปุ่มทุก frame
+        RefreshUpgradeButtons();
     }
+
+    void Shoot()
+{
+    currentAmmo--;
+    UpdateUI();
+
+    // 🔊 เล่นเสียงยิง
+    if (audioSource != null && shootSound != null)
+        audioSource.PlayOneShot(shootSound);
+
+    RaycastHit hit;
+    if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
+    {
+        EnemyHealth enemy = hit.transform.GetComponent<EnemyHealth>();
+        if (enemy != null)
+        {
+            enemy.TakeDamage(damage);
+            hitMarker.ShowHitMarker();
+        }
+    }
+}
 
     void StartReload()
-    {
-        if (isReloading) return;
+{
+    if (currentAmmo >= maxAmmo) return;
 
-        isReloading = true;
-        reloadTimer = reloadTime;
+    reloadTimer = reloadTime;
+    if (reloadText != null)
         reloadText.SetActive(true);
-    }
+}
 
-    void HandleReload()
+void HandleReload()
+{
+    if (reloadTimer <= 0f) return;
+
+    reloadTimer -= Time.deltaTime;
+
+    if (reloadTimer <= 0f)
     {
-        if (!isReloading) return;
-
-        reloadTimer -= Time.deltaTime;
-
-        if (reloadTimer <= 0f)
-        {
-            currentAmmo = maxAmmo;
-            isReloading = false;
-
+        currentAmmo = maxAmmo;
+        if (reloadText != null)
             reloadText.SetActive(false);
-            UpdateUI();
+        UpdateUI();
+    }
+}
+
+    
+    void UpdateUI()
+    {
+        if (ammoText != null)
+        {
+            ammoText.text = currentAmmo + " / " + maxAmmo;
+            ammoText.color = (currentAmmo <= 5) ? Color.red : Color.white;
         }
     }
 
-    void UpdateUI()
+    public void UpgradeMaxAmmo(int amount)
     {
-        ammoText.text = currentAmmo + " / " + maxAmmo;
+        if (ammoLevel >= maxLevel) return; // Max แล้ว
 
-        if (currentAmmo <= 5)
-            ammoText.color = Color.red;
-        else
-            ammoText.color = Color.white;
+        if (!GameManager.instance.SpendMoney(ammoCost)) return; // เงินไม่พอ
+
+        ammoLevel++;
+        maxAmmo += amount;
+        currentAmmo = maxAmmo; // เติมเต็มทันที
+        ammoCost += 0;
+
+        UpdateUI();
+        RefreshUpgradeButtons();
+
+        if (gunUI != null)
+            gunUI.RefreshUI();
+
+        Debug.Log($"Ammo upgraded! MaxAmmo = {maxAmmo}");
     }
 
-    public void IncreaseMaxAmmo(int amount)
-{
-    maxAmmo += amount;
-    currentAmmo = maxAmmo; // เติมกระสุนเต็มด้วย
-    UpdateUI();
-}
-
-
-
-public void IncreaseDamage(int amount)
-{
-    damage += amount;
-    Debug.Log("Damage Increased: " + damage);
-}
-
-public void IncreaseFireRate(float amount)
-{
-    fireRate += amount;
-
-    // กันยิงเร็วเกินไป
-    if (fireRate > 50f)
-        fireRate = 50f;
-
-    Debug.Log("Fire Rate Increased: " + fireRate);
-}
-
-public void UpgradeDamage(int amount)
-{
-    if (damageLevel >= maxLevel)
+    public void BuyDamageUpgrade(int amount)
     {
-        Debug.Log("Damage MAX LEVEL");
-        return;
+        if (damageLevel >= maxLevel) return;
+        if (!GameManager.instance.SpendMoney(damageCost)) return;
+
+        damageLevel++;
+        damage += amount;
+        damageCost += 50;
+
+        RefreshUpgradeButtons();
+        if (gunUI != null)
+            gunUI.RefreshUI();
     }
 
-    damageLevel++;
-    damage += amount;
-
-    Debug.Log("Damage Lv." + damageLevel + " | Damage: " + damage);
-}
-
-public void UpgradeFireRate(float amount)
-{
-    if (fireRateLevel >= maxLevel)
+    public void BuyFireRateUpgrade(float amount)
     {
-        Debug.Log("FireRate MAX LEVEL");
-        return;
+        if (fireRateLevel >= maxLevel) return;
+        if (!GameManager.instance.SpendMoney(fireRateCost)) return;
+
+        fireRateLevel++;
+        fireRate += amount;
+        if (fireRate > 50f) fireRate = 50f;
+        fireRateCost += 75;
+
+        RefreshUpgradeButtons();
+        if (gunUI != null)
+            gunUI.RefreshUI();
     }
 
-    fireRateLevel++;
-    fireRate += amount;
+    // ✅ ปุ่ม Upgrade จะ Disable ถ้าเงินไม่พอหรือ Max Level
+    void RefreshUpgradeButtons()
+    {
+        if (GameManager.instance == null) return;
 
-    if (fireRate > 50f)
-        fireRate = 50f;
+        if (damageButton != null)
+            damageButton.interactable = damageLevel < maxLevel && GameManager.instance.money >= damageCost;
 
-    Debug.Log("FireRate Lv." + fireRateLevel + " | Rate: " + fireRate);
-}
+        if (fireRateButton != null)
+            fireRateButton.interactable = fireRateLevel < maxLevel && GameManager.instance.money >= fireRateCost;
 
-// GunSystem.cs
-public void UpgradeDamagePercent(float percent)
-{
-    if (damageLevel >= maxLevel) return;
-
-    damageLevel++;
-    damage = Mathf.RoundToInt(damage * (1 + percent / 100f));
-
-    Debug.Log("Damage Lv." + damageLevel + " | Damage: " + damage);
-}
-
-public void UpgradeFireRatePercent(float percent)
-{
-    if (fireRateLevel >= maxLevel) return;
-
-    fireRateLevel++;
-    fireRate *= (1 + percent / 100f);
-    if (fireRate > 50f) fireRate = 50f;
-
-    Debug.Log("FireRate Lv." + fireRateLevel + " | Rate: " + fireRate);
-}
+        if (ammoButton != null)
+            ammoButton.interactable = ammoLevel < maxLevel && GameManager.instance.money >= ammoCost;
+    }
 }

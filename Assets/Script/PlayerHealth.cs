@@ -75,8 +75,11 @@ public class PlayerHealth : MonoBehaviour
 
     void RestartGame()
     {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        void RestartGame()
+    {
+    Time.timeScale = 1f;
+    SceneManager.LoadScene("Open"); // 👈 ใส่ชื่อ Scene เมนู
+    }
     }
 
 

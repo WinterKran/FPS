@@ -116,50 +116,36 @@ public class ShopManager : MonoBehaviour
         GunSystem gun = FindObjectOfType<GunSystem>();
 
         switch (index)
+{
+    case 0:
+        WallHealth wall = FindObjectOfType<WallHealth>();
+        if (wall != null)
+            wall.ResetHealth();
+        break;
+
+    case 1:
+        if (gun != null)
+            gun.UpgradeMaxAmmo(10); // <-- แก้ตรงนี้
+        break;
+
+    case 2: // Damage Upgrade
+        if (gun != null)
         {
-            case 0:
-                WallHealth wall = FindObjectOfType<WallHealth>();
-                if (wall != null)
-                    wall.ResetHealth();
-                break;
-
-            case 1:
-                if (gun != null)
-                    gun.IncreaseMaxAmmo(10);
-                break;
-
-            case 2: // Damage Upgrade
-                if (gun != null)
-                {
-                    if (gun.damageLevel >= gun.maxLevel)
-                    {
-                        Debug.Log("Damage Max Level!");
-                        return;
-                    }
-
-                    gun.UpgradeDamagePercent(20f); // เพิ่ม 20% ต่อ Level
-
-                    itemPrices[index] += 50;
-                    itemPricesText[index].text = "$" + itemPrices[index];
-                }
-                break;
-
-            case 3: // FireRate Upgrade
-                if (gun != null)
-                {
-                    if (gun.fireRateLevel >= gun.maxLevel)
-                    {
-                        Debug.Log("FireRate Max Level!");
-                        return;
-                    }
-
-                    gun.UpgradeFireRatePercent(15f); // เพิ่ม 15% ต่อ Level
-
-                    itemPrices[index] += 50;
-                    itemPricesText[index].text = "$" + itemPrices[index];
-                }
-                break;
+            gun.BuyDamageUpgrade(20);
+            itemPrices[index] += 50;
+            itemPricesText[index].text = "$" + itemPrices[index];
         }
+        break;
+
+    case 3: // FireRate Upgrade
+        if (gun != null)
+        {
+            gun.BuyFireRateUpgrade(15f);
+            itemPrices[index] += 50;
+            itemPricesText[index].text = "$" + itemPrices[index];
+        }
+        break;
+}
 
         // หักเงิน
         GameManager.instance.AddMoney(-price);
